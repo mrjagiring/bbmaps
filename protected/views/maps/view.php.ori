@@ -1,0 +1,57 @@
+<?php
+/* @var $this MapsController */
+/* @var $model Maps */
+
+$this->breadcrumbs=array(
+	'Maps'=>array('index'),
+	$model->id,
+);
+
+$this->menu=array(
+	array('label'=>'Create Maps', 'url'=>array('create')),
+	array('label'=>'Manage Maps', 'url'=>array('admin')),
+	array('label'=>'Multi Views', 'url'=>array('multiviews')),
+);
+?>
+
+<h1>View Maps #<?php echo $model->id.'. '.$model->subject; ?></h1>
+<div align=center>
+<?php
+Yii::import('ext.EGMap.*');
+ 
+$gMap = new EGMap();
+$gMap->setWidth(800);
+$gMap->setHeight(500);
+$gMap->zoom = 11;
+$mapTypeControlOptions = array(
+  'position'=> EGMapControlPosition::LEFT_BOTTOM,
+  'style'=>EGMap::MAPTYPECONTROL_STYLE_DROPDOWN_MENU
+);
+ 
+$gMap->mapTypeControlOptions= $mapTypeControlOptions; 
+$gMap->setCenter($model->latitude, $model->longitude);
+ 
+// Create GMapInfoWindows
+$paths = "";
+$allImages = Images::model()->findAll('maps_id =' .$model->id); 
+if(!empty($allImages))
+{
+	foreach ($allImages as $record) { $paths .= '<img src="images/uploads/thumbs_'. $record->path .'">' . '&nbsp'; }
+}
+$info_window = new EGMapInfoWindow('<div>'. $model->subject .'<br />'. $model->detail .'<br /><br />'. $paths . '</div>');
+ 
+$icon = new EGMapMarkerImage("images/building-32.png");
+$icon->setSize(32, 37);
+$icon->setAnchor(16, 16.5);
+$icon->setOrigin(0, 0);
+ 
+// Create marker
+$marker = new EGMapMarker($model->latitude, $model->longitude, array('title' => $model->subject,'icon'=>$icon));
+$marker->addHtmlInfoWindow($info_window);
+$gMap->addMarker($marker);
+ 
+// enabling marker clusterer just for fun to view it zoom-out the map
+//$gMap->enableMarkerClusterer(new EGMapMarkerClusterer());
+ 
+$gMap->renderMap();
+?>
